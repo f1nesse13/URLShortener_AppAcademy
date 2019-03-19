@@ -7,6 +7,14 @@ class User < ApplicationRecord
     foreign_key: :user_id,
     class_name: "ShortenedURL"
 
+  has_many :visits,
+    foreign_key: :user_id,
+    class_name: "Visit"
+
+  has_many :visited_urls,
+    through: :visits,
+    source: :url
+
   def long_url
     self.urls.first.long_url
   end

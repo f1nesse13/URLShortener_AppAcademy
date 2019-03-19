@@ -16,4 +16,22 @@ class ShortenedURL < ApplicationRecord
   belongs_to :submitter,
     foreign_key: :user_id,
     class_name: "User"
+
+  has_many :visits,
+    foreign_key: :url_id,
+    class_name: "Visit"
+
+  has_many :visitors,
+    through: :visits,
+    source: :user
+
+  def num_clicks
+    self.visits.count
+  end
+
+  def num_uniques
+  end
+
+  def num_recent_uniques
+  end
 end
