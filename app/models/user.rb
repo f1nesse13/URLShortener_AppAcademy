@@ -22,4 +22,8 @@ class User < ApplicationRecord
   def create_short_url(longurl)
     ShortenedURL.create!(short_url: ShortenedURL.random_code, long_url: longurl, user_id: self.id)
   end
+
+  def self.create_user!(email)
+    User.create!(email: email)
+  end
 end

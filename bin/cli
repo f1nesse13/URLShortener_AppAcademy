@@ -1,0 +1,48 @@
+#!/usr/bin/env ruby
+
+puts "Please enter your email "
+user_email = gets.chomp
+
+current_user = User.find_by(email: user_email)
+
+if current_user.nil?
+  current_user = User.create_user!(user_email)
+end
+
+puts "Would you like to visit a shortened URL or create a new one? (use create or visit)"
+
+user_choice = nil
+
+until user_choice == "create" || user_choice == "visit"
+  user_choice = gets.chomp.downcase
+  exit if user_choice == "quit"
+  if user_choice != "create" || user_choice != "visit"
+    puts "Please use create or visit to continue"
+  end
+end
+url = nil
+until !url.nil?
+  if user_choice == "visit"
+    puts "Please enter your url code"
+    short_url = gets.chomp
+    url = ShortenedURL.find_by(short_url: short_url)
+    if !url.nil?
+      Launchy.open(url.long_url)
+      Visit.record_visit!(current_user.id, url.id)
+    else
+      puts "Invalid code"
+      puts "Press enter to try again or quit to quit"
+      quit = gets.chomp
+      if quit == "quit"
+        puts "Goodbye!"
+        exit
+      end
+    end
+  else
+    puts "Please enter the url to have shortened"
+    url = gets.chomp
+    current_user.create_short_url(url)
+    puts "Your short url is #{ShortenedURL.all.last.short_url}"
+  end
+end
+puts "Goodbye!"

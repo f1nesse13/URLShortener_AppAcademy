@@ -25,13 +25,20 @@ class ShortenedURL < ApplicationRecord
     through: :visits,
     source: :user
 
+  has_many :distinct_visitors,
+    -> { distinct },
+    through: :visits,
+    source: :user
+
   def num_clicks
     self.visits.count
   end
 
   def num_uniques
+    self.distinct_visitors.count
   end
 
   def num_recent_uniques
+    self.distinct_visitors.where(self.visits.where({ updated_at: 10.minutes.ago..Time.now }))
   end
 end
