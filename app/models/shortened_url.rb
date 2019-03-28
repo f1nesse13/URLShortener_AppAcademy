@@ -17,15 +17,18 @@ class ShortenedURL < ApplicationRecord
 
   belongs_to :submitter,
     foreign_key: :user_id,
-    class_name: "User"
+    class_name: "User",
+    optional: true
 
   has_many :tags,
     foreign_key: :url_id,
-    class_name: "Tagging"
+    class_name: "Tagging",
+    dependent: :destroy
 
   has_many :visits,
     foreign_key: :url_id,
-    class_name: "Visit"
+    class_name: "Visit",
+    dependent: :destroy
 
   has_many :visitors,
     through: :visits,
@@ -39,6 +42,10 @@ class ShortenedURL < ApplicationRecord
   has_many :tag_topics,
     through: :tags,
     source: :tag_topics
+
+  def last_visited
+    self.visits.order(created_at: :desc).limit(1).first.created_at
+  end
 
   def num_clicks
     self.visits.count
@@ -62,5 +69,10 @@ class ShortenedURL < ApplicationRecord
     if submitter.premium == false && submitter.submitted_urls.count >= 5
       self.errors["long_url"] << "Non premium users are limited to 5 URLs"
     end
+  end
+
+  def self.prune(n)
+    ShortenedURL.all.where.not({ created_at: n.minute.ago..Time.now }).joins("LEFT JOIN visits on visits.url_id = shortened_urls.id").group("shortened_urls.id").having("COUNT(visits.url_id) = 0").destroy_all
+    ShortenedURL.all.joins("JOIN visits on visits.url_id = shortened_urls.id").where.not(visits: { created_at: n.minute.ago..Time.now }).destroy_all
   end
 end

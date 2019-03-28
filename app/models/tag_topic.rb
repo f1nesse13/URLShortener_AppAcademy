@@ -11,5 +11,6 @@ class TagTopic < ApplicationRecord
     source: :urls
 
   def popular_links
+    self.urls.joins("JOIN visits ON visits.url_id = shortened_urls.id").order("COUNT(visits.url_id) DESC").group("shortened_urls.id").limit(5)
   end
 end
